@@ -16,6 +16,7 @@ import {
 } from '@autorecord/manager'
 import { getInfo, getStream } from './stream'
 import { ensureFolderExist, replaceExtName, singleton } from './utils'
+import HuYaDanMu, { HuYaMessage } from 'huya-danmu-fix'
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -106,8 +107,50 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] =
 
     extraDataController.setMeta({ title })
 
-    // TODO: 弹幕录制
-    // const client =
+    let client: HuYaDanMu | null = null
+    if (!this.disableProvideCommentsWhenRecording) {
+      client = new HuYaDanMu(this.channelId)
+      client.on('message', (msg: HuYaMessage) => {
+        switch (msg.type) {
+          case 'chat':
+            const comment: Comment = {
+              type: 'comment',
+              timestamp: Date.now(),
+              text: msg.content,
+              sender: {
+                uid: msg.from.rid,
+                name: msg.from.name,
+              },
+            }
+            this.emit('Message', comment)
+            extraDataController.addMessage(comment)
+            break
+          case 'gift':
+            const gift: GiveGift = {
+              type: 'give_gift',
+              timestamp: Date.now(),
+              name: msg.name,
+              count: msg.count,
+              sender: {
+                uid: msg.from.rid,
+                name: msg.from.name,
+              },
+            }
+            this.emit('Message', gift)
+            extraDataController.addMessage(gift)
+            break
+        }
+      })
+      client.on('error', (e: unknown) => {
+        this.emit('DebugLog', { type: 'common', text: String(e) })
+      })
+      try {
+        await client.start()
+      } catch (err) {
+        this.state = 'idle'
+        throw err
+      }
+    }
 
     const recordSavePath = savePath
     ensureFolderExist(recordSavePath)
@@ -161,7 +204,7 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] =
       // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
       command.kill('SIGINT')
       // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-      // client?.close()
+      client?.stop()
       extraDataController.setMeta({ recordStopTimestamp: Date.now() })
       extraDataController.flush()
 
