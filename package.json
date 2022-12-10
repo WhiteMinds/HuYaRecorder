@@ -1,0 +1,35 @@
+{
+  "name": "@autorecord/huya-recorder",
+  "version": "1.0.0",
+  "description": "LAR huya recorder implemention",
+  "main": "./lib/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": "https://github.com/WhiteMinds/HuYaRecorder",
+  "author": "WhiteMind",
+  "license": "LGPL",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "cheerio": "^1.0.0-rc.12",
+    "mitt": "^3.0.0",
+    "ramda": "^0.28.0"
+  },
+  "devDependencies": {
+    "@autorecord/manager": "^1.0.0",
+    "@types/lodash": "^4.14.190",
+    "@types/node": "*",
+    "@types/ramda": "^0.28.16",
+    "typescript": "^4.8.4"
+  },
+  "peerDependencies": {
+    "@autorecord/manager": "*"
+  }
+}
