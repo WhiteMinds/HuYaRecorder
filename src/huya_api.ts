@@ -2,20 +2,17 @@ import vm from 'vm'
 import axios from 'axios'
 import * as cheerio from 'cheerio'
 import { assert } from './utils'
+import { initInfo } from './anticode'
 
 const requester = axios.create({
   timeout: 10e3,
 })
 
 export async function getRoomInfo(roomIdOrShortId: string) {
-  const res = await requester.get<string>(
-    `https://www.huya.com/${roomIdOrShortId}`
-  )
+  const res = await requester.get<string>(`https://www.huya.com/${roomIdOrShortId}`)
   const html = res.data
   const $ = cheerio.load(html)
-  const variablesDeclarationScript = $(
-    'script:contains("var hyPlayerConfig")'
-  ).text()
+  const variablesDeclarationScript = $('script:contains("var hyPlayerConfig")').text()
 
   interface GlobalThis {
     window: GlobalThis
@@ -26,10 +23,7 @@ export async function getRoomInfo(roomIdOrShortId: string) {
       return globalThisInContext
     },
   }
-  vm.runInNewContext(
-    variablesDeclarationScript,
-    vm.createContext(globalThisInContext)
-  )
+  vm.runInNewContext(variablesDeclarationScript, vm.createContext(globalThisInContext))
 
   const { hyPlayerConfig } = globalThisInContext
   assert(hyPlayerConfig, `Unexpected resp, hyPlayerConfig is null`)
@@ -45,14 +39,12 @@ export async function getRoomInfo(roomIdOrShortId: string) {
 
   const sources: SourceProfile[] = data.gameStreamInfoList.map((info) => ({
     name: `直播线路 ${info.iLineIndex}`,
-    url:
-      info.sFlvUrl +
-      '/' +
-      info.sStreamName +
-      '.' +
-      info.sFlvUrlSuffix +
-      '?' +
-      info.sFlvAntiCode,
+    url: initInfo({
+      sFlvUrl: info.sFlvUrl,
+      sStreamName: info.sStreamName,
+      sFlvAntiCode: info.sFlvAntiCode,
+      _sessionId: Date.now(),
+    }),
   }))
 
   return {

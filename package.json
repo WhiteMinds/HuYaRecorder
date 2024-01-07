@@ -1,6 +1,6 @@
 {
   "name": "@autorecord/huya-recorder",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "LAR huya recorder implemention",
   "main": "./lib/index.js",
   "publishConfig": {
