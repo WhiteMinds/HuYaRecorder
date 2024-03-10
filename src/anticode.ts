@@ -245,7 +245,7 @@ class Anticode {
 
 export function initInfo(
   info: { sFlvUrl: string; sFlvAntiCode: string; sStreamName: string; _sessionId: number },
-  t?: unknown
+  t?: unknown,
 ) {
   if (info.sFlvUrl && info.sStreamName) {
     info.url = ''.concat(info.sFlvUrl, '/').concat(info.sStreamName, '.flv')

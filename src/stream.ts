@@ -20,10 +20,7 @@ export async function getInfo(channelId: string): Promise<{
 }
 
 export async function getStream(
-  opts: Pick<
-    Recorder,
-    'channelId' | 'quality' | 'streamPriorities' | 'sourcePriorities'
-  > & { rejectCache?: boolean }
+  opts: Pick<Recorder, 'channelId' | 'quality' | 'streamPriorities' | 'sourcePriorities'> & { rejectCache?: boolean },
 ) {
   const info = await getRoomInfo(opts.channelId)
   if (!info.living) {
@@ -31,10 +28,7 @@ export async function getStream(
   }
 
   let expectStream: StreamProfile
-  const streamsWithPriority = sortAndFilterStreamsByPriority(
-    info.streams,
-    opts.streamPriorities
-  )
+  const streamsWithPriority = sortAndFilterStreamsByPriority(info.streams, opts.streamPriorities)
   if (streamsWithPriority.length > 0) {
     // 通过优先级来选择对应流
     expectStream = streamsWithPriority[0]
@@ -43,16 +37,13 @@ export async function getStream(
     const flexedStreams = getValuesFromArrayLikeFlexSpaceBetween(
       // 接口给的画质列表是按照清晰到模糊的顺序的，这里翻转下
       R.reverse(info.streams),
-      Qualities.length
+      Qualities.length,
     )
     expectStream = flexedStreams[Qualities.indexOf(opts.quality)]
   }
 
   let expectSource: SourceProfile | null = null
-  const sourcesWithPriority = sortAndFilterSourcesByPriority(
-    info.sources,
-    opts.sourcePriorities
-  )
+  const sourcesWithPriority = sortAndFilterSourcesByPriority(info.sources, opts.sourcePriorities)
   if (sourcesWithPriority.length > 0) {
     expectSource = sourcesWithPriority[0]
   } else {
@@ -74,7 +65,7 @@ export async function getStream(
  */
 function sortAndFilterStreamsByPriority(
   streams: StreamProfile[],
-  streamPriorities: Recorder['streamPriorities']
+  streamPriorities: Recorder['streamPriorities'],
 ): (StreamProfile & {
   priority: number
 })[] {
@@ -88,7 +79,7 @@ function sortAndFilterStreamsByPriority(
         ...stream,
         priority: R.reverse(streamPriorities).indexOf(stream.desc),
       }))
-      .filter(({ priority }) => priority !== -1)
+      .filter(({ priority }) => priority !== -1),
   )
 }
 
@@ -97,7 +88,7 @@ function sortAndFilterStreamsByPriority(
  */
 function sortAndFilterSourcesByPriority(
   sources: SourceProfile[],
-  sourcePriorities: Recorder['sourcePriorities']
+  sourcePriorities: Recorder['sourcePriorities'],
 ): (SourceProfile & {
   priority: number
 })[] {
@@ -111,6 +102,6 @@ function sortAndFilterSourcesByPriority(
         ...source,
         priority: R.reverse(sourcePriorities).indexOf(source.name),
       }))
-      .filter(({ priority }) => priority !== -1)
+      .filter(({ priority }) => priority !== -1),
   )
 }
